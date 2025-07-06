@@ -25,7 +25,7 @@ const productRouter = express.Router();
 
 // Public routes (no authentication required)
 productRouter.get('/products',authenticateUser, getAllProducts); // Optional auth to show user's own products differently
-productRouter.get('/products/:productId', optionalAuth, getProductById);
+productRouter.get('/products/:productId',authenticateUser,  getProductById);
 productRouter.get('/products/user/:userId', getProductsByUser);
 productRouter.get('/categories', getCategories);
 

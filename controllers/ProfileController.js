@@ -6,36 +6,52 @@ import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinarySer
 dotenv.config();
 
 export const completeProfile = async (req, res) => {
-    const {email, contact_number , hostel} = req.body;
-    // const userId = req.user.id;
-    try{
-        const check_for_user = await pool.query("select * from users where email = $1", [email]);
-        if(check_for_user.rows.length === 0){
-            return res.status(404).json({message: "User not found"});
-        }
-        const updateUser = await pool.query(
-            "UPDATE users SET contact_number = $1, hostel = $2 WHERE email=$3 RETURNING *",
-            [contact_number, hostel,email]
-        );
-        if(updateUser.rows.length === 0){
-            return res.status(404).json({message: "Failed to update user, try again later"});
-        }
-        else{
-            const user = updateUser.rows[0];
-            const mailOptions = {
-                from: process.env.sender_email,
-                to: email,
-                subject: "Profile Updated Successfully",
-                text: `Hello ${check_for_user.name},\n\nYour profile has been updated successfully with data contact ->${contact_number} and hostel->${hostel}.\n\nThank you!`
-            };
-            await transporter.sendMail(mailOptions);
-            return res.status(200).json({message: "Profile updated successfully", user});
-        }
-    }catch(err){
-        console.error("Error in completeProfile:", err);
-        return res.status(500).json({message: "Internal server error"});
+  const { contact_number, hostel } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const check_for_user = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+    if (check_for_user.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
     }
-}
+
+    const user = check_for_user.rows[0];
+
+    if (user.contact_number || user.hostel) {
+      return res.status(400).json({ message: "Profile already completed, you can update it instead" });
+    }
+
+    const updateUser = await pool.query(
+      "UPDATE users SET contact_number = $1, hostel = $2 WHERE id = $3 RETURNING *",
+      [contact_number, hostel, userId]
+    );
+
+    if (updateUser.rows.length === 0) {
+      return res.status(404).json({ message: "Failed to update user, try again later" });
+    }
+
+    const updatedUser = updateUser.rows[0];
+
+    const mailOptions = {
+      from: process.env.sender_email,
+      to: user.email,
+      subject: "Profile Updated Successfully",
+      text: `Hello ${user.name},\n\nYour profile has been updated successfully with:\nContact: ${contact_number}\nHostel: ${hostel}\n\nThank you!`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+
+  } catch (err) {
+    console.error("Error in completeProfile:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 export const updateprofile = async (req, res) => {
     const {bio, name, contact_number, hostel} = req.body;
