@@ -6,7 +6,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
-    
   },
   "keywords": [],
   "author": "",
@@ -24,6 +23,7 @@
     "nodemailer": "^7.0.4",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "supabase": "^2.30.4"
   }
 }
