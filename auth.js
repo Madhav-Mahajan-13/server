@@ -28,7 +28,7 @@ passport.use(
           user = existing.rows[0];
         }
 
-        console.log("user::", user);
+        // console.log("user::", user);
         return done(null, user);
       } catch (err) {
         return done(err, null);
